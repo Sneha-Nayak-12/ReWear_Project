@@ -2,9 +2,12 @@ import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useFavorites } from "../context/FavoritesContext";
+import { Heart, Package } from "lucide-react";
 
 export default function Dashboard() {
   const { user, token, logout } = useAuth();
+  const { favorites } = useFavorites();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState<any>(null);
@@ -29,11 +32,11 @@ export default function Dashboard() {
   if (!user || !stats) return null;
 
   return (
-    <div className="bg-[#fcfbf8] border-t thin-border min-h-[calc(100vh-80px)]">
+    <div className="bg-[#fcfbf8] min-h-full">
       <div className="max-w-[1200px] mx-auto px-6 py-20">
         <div className="flex justify-between items-center mb-12">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
               Control Room
             </div>
             <h1 className="text-4xl md:text-5xl font-serif text-[#2c2c2c]">
@@ -43,13 +46,19 @@ export default function Dashboard() {
           <div className="flex gap-4">
             <Link
               to="/list"
-              className="bg-[#2a3d32] text-white px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px]"
+              className="bg-[#2a3d32] text-white px-6 py-3 text-sm uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px]"
             >
               New Listing
             </Link>
+            <Link
+              to="/orders"
+              className="border thin-border px-6 py-3 text-sm uppercase tracking-[0.2em] font-semibold hover:bg-black/5 transition-colors rounded-[2px] text-[#2c2c2c] flex items-center gap-2"
+            >
+              Order History
+            </Link>
             <button
               onClick={logout}
-              className="border thin-border px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-black/5 transition-colors rounded-[2px] text-[#2c2c2c]"
+              className="border thin-border px-6 py-3 text-sm uppercase tracking-[0.2em] font-semibold hover:bg-black/5 transition-colors rounded-[2px] text-[#2c2c2c]"
             >
               Logout
             </button>
@@ -57,47 +66,73 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 border thin-border mb-16">
-          <div className="p-8 border-b md:border-b-0 md:border-r thin-border">
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 border thin-border mb-16">
+          <div className="p-8 border-b md:border-r thin-border">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
               Total Earnings
             </div>
             <div className="text-4xl font-serif text-[#2a3d32] mb-1">
               ₹{stats.earnings.toFixed(2)}
             </div>
           </div>
-          <div className="p-8 border-b md:border-b-0 md:border-r thin-border">
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
-              Listings
+          <div className="p-8 border-b md:border-r thin-border">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+              Your Listings
             </div>
             <div className="text-4xl font-serif text-[#2c2c2c] mb-2">
               {stats.listings.length}
             </div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-[#7a7a7a]">
-              {stats.listings.length} Active
+            <div className="text-xs uppercase tracking-[0.2em] text-[#7a7a7a]">
+              {stats.listings.length} Active Piece(s)
+            </div>
+          </div>
+          <div className="p-8 border-b thin-border relative group">
+            <Link to="/orders" className="absolute inset-0 z-10"></Link>
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4 flex justify-between items-center pr-2">
+               Booking History
+               <Package className="w-3.5 h-3.5 text-[#cebc9a] group-hover:scale-125 transition-transform" />
+            </div>
+            <div className="text-4xl font-serif text-[#2c2c2c] group-hover:text-[#2a3d32] transition-colors">
+              {stats.pendingOrders + stats.completed}
+            </div>
+            <div className="text-xs uppercase tracking-[0.2em] text-[#7a7a7a] mt-2 group-hover:underline">
+               Track Archives
             </div>
           </div>
           <div className="p-8 border-b md:border-b-0 md:border-r thin-border">
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
-              Pending Orders
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+              Pending
             </div>
             <div className="text-4xl font-serif text-[#2c2c2c]">
               {stats.pendingOrders}
             </div>
           </div>
-          <div className="p-8">
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+          <div className="p-8 border-b md:border-b-0 md:border-r thin-border">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
               Completed
             </div>
             <div className="text-4xl font-serif text-[#2c2c2c]">
               {stats.completed}
             </div>
           </div>
+          <div className="p-8 relative group">
+            <Link to="/favorites" className="absolute inset-0 z-10"></Link>
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4 flex justify-between items-center pr-2">
+              Favorites
+              <Heart className="w-3.5 h-3.5 text-[#cebc9a] fill-[#cebc9a] group-hover:scale-125 transition-transform" />
+            </div>
+            <div className="text-4xl font-serif text-[#2c2c2c] group-hover:text-[#2a3d32] transition-colors">
+              {favorites.length}
+            </div>
+            <div className="text-xs uppercase tracking-[0.2em] text-[#7a7a7a] mt-2 group-hover:underline">
+              View All
+            </div>
+          </div>
         </div>
 
         {/* Closet */}
         <div>
-          <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-6">
+          <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-6">
             Your Closet
           </div>
 
@@ -117,7 +152,7 @@ export default function Dashboard() {
                     />
                   </div>
                   <div className="p-4 bg-white/50 backdrop-blur-sm absolute bottom-0 inset-x-0 border-t thin-border">
-                    <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-1">
+                    <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-1">
                       {item.brand}
                     </div>
                     <div className="text-sm font-serif text-[#2c2c2c]">
@@ -134,7 +169,7 @@ export default function Dashboard() {
               </h3>
               <Link
                 to="/list"
-                className="bg-[#2a3d32] text-white px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px]"
+                className="bg-[#2a3d32] text-white px-6 py-3 text-sm uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px]"
               >
                 List your first piece
               </Link>

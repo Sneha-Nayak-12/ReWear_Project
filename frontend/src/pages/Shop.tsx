@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Heart } from "lucide-react";
 import axios from "axios";
+import { useFavorites } from "../context/FavoritesContext";
 
 interface Listing {
   id: number;
@@ -22,6 +23,7 @@ export default function Shop() {
   const [occasion, setOccasion] = useState("All");
   const [size, setSize] = useState("All");
   const [mode, setMode] = useState("Rent or Buy");
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   useEffect(() => {
     axios.get("/api/listings").then((res) => setListings(res.data));
@@ -55,11 +57,11 @@ export default function Shop() {
   });
 
   return (
-    <div className="bg-[#fcfbf8] border-t thin-border min-h-screen">
+    <div className="bg-[#fcfbf8] min-h-full">
       <div className="max-w-[1400px] mx-auto px-6 py-20">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
               The Closet
             </div>
             <h1 className="text-4xl md:text-5xl font-serif text-[#2c2c2c] max-w-lg leading-tight">
@@ -86,7 +88,7 @@ export default function Shop() {
           <div className="flex flex-wrap items-center gap-x-12 gap-y-6 text-xs text-[#7a7a7a]">
             {/* Category */}
             <div className="flex items-center gap-4">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">
+              <span className="text-xs uppercase tracking-[0.2em] font-semibold">
                 Category
               </span>
               {categories.map((c) => (
@@ -101,7 +103,7 @@ export default function Shop() {
             </div>
             {/* Occasion */}
             <div className="flex items-center gap-4">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">
+              <span className="text-xs uppercase tracking-[0.2em] font-semibold">
                 Occasion
               </span>
               {occasions.map((o) => (
@@ -116,7 +118,7 @@ export default function Shop() {
             </div>
             {/* Size */}
             <div className="flex items-center gap-4">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">
+              <span className="text-xs uppercase tracking-[0.2em] font-semibold">
                 Size
               </span>
               {sizes.map((s) => (
@@ -152,16 +154,32 @@ export default function Shop() {
               key={item.id}
               className="group block"
             >
-              <div className="aspect-[3/4] bg-[#e6e4dc] mb-4 overflow-hidden">
+              <div className="aspect-[3/4] bg-[#e6e4dc] mb-4 overflow-hidden relative">
                 <img
                   src={item.image}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   alt={item.title}
                 />
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFavorite(item.id);
+                  }}
+                  className="absolute top-4 right-4 p-2 bg-white/80 hover:bg-white rounded-full backdrop-blur-sm transition-all"
+                >
+                  <Heart
+                    className={`w-4 h-4 transition-colors ${
+                      isFavorite(item.id)
+                        ? "fill-[#2a3d32] text-[#2a3d32]"
+                        : "text-[#7a7a7a] hover:text-[#2a3d32]"
+                    }`}
+                  />
+                </button>
               </div>
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-1">
+                  <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-1">
                     {item.brand}
                   </div>
                   <div className="text-sm font-serif text-[#2c2c2c]">

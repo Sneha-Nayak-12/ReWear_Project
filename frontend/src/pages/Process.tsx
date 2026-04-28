@@ -35,7 +35,7 @@ export default function Process() {
   ];
 
   return (
-    <div className="bg-[#fcfbf8] py-20 md:py-32 border-t thin-border">
+    <div className="bg-[#fcfbf8] py-20 md:py-32">
       <div className="max-w-[1000px] mx-auto px-6">
         <div className="mb-20">
           <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-6">

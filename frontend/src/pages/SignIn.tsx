@@ -24,7 +24,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-[calc(100vh-80px)] border-t thin-border">
+    <div className="flex flex-col md:flex-row min-h-full">
       {/* Left side Image */}
       <div className="md:w-1/2 relative bg-[#1a1a1a] min-h-[400px] md:min-h-full">
         <img

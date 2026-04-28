@@ -9,9 +9,12 @@ import {
   MessageCircle,
   X,
   Calendar as CalendarIcon,
+  Heart,
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { useFavorites } from "../context/FavoritesContext";
+import { useCart } from "../context/CartContext";
 import { DayPicker } from "react-day-picker";
 import { format, differenceInDays } from "date-fns";
 import "react-day-picker/dist/style.css";
@@ -34,9 +37,12 @@ export default function Product() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [addedToBag, setAddedToBag] = useState(false);
 
   // Messaging state
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -179,7 +185,7 @@ export default function Product() {
   }
 
   return (
-    <div className="bg-[#fcfbf8] border-t thin-border min-h-screen pt-12 pb-24">
+    <div className="bg-[#fcfbf8] pb-24 min-h-full">
       {/* Message Modal */}
       {isMessageModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -227,7 +233,7 @@ export default function Product() {
                   messageStatus === "success" ||
                   !messageText.trim()
                 }
-                className="bg-[#2a3d32] text-white px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px] disabled:opacity-50"
+                className="bg-[#2a3d32] text-white px-6 py-3 text-sm uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px] disabled:opacity-50"
               >
                 {messageStatus === "sending" ? "Sending..." : "Send Message"}
               </button>
@@ -239,7 +245,7 @@ export default function Product() {
       <div className="max-w-[1400px] mx-auto px-6">
         <Link
           to="/shop"
-          className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] hover:text-[#2c2c2c] mb-8 inline-flex items-center gap-2"
+          className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] hover:text-[#2c2c2c] mb-8 inline-flex items-center gap-2"
         >
           &mdash; Back to closet
         </Link>
@@ -257,6 +263,19 @@ export default function Product() {
                 alt={product.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
+
+              <button
+                onClick={() => toggleFavorite(product.id)}
+                className="absolute top-6 right-6 p-3 bg-white/90 hover:bg-white rounded-full shadow-lg backdrop-blur text-[#2c2c2c] transition-all z-10"
+              >
+                <Heart
+                  className={`w-5 h-5 transition-colors ${
+                    isFavorite(product.id)
+                      ? "fill-[#2a3d32] text-[#2a3d32]"
+                      : "text-[#7a7a7a] hover:text-[#2a3d32]"
+                  }`}
+                />
+              </button>
 
               {product.images && product.images.length > 1 && (
                 <>
@@ -315,7 +334,7 @@ export default function Product() {
 
           {/* Right: Details */}
           <div className="md:w-1/2 py-4">
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-3">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-3">
               {product.brand}
             </div>
             <h1 className="text-4xl lg:text-5xl font-serif text-[#2c2c2c] mb-6">
@@ -327,7 +346,7 @@ export default function Product() {
             </p>
 
             <div className="border-t border-b thin-border py-8 mb-10">
-              <div className="grid grid-cols-2 gap-y-4 text-[10px] uppercase tracking-[0.15em] text-[#7a7a7a]">
+              <div className="grid grid-cols-2 gap-y-4 text-xs uppercase tracking-[0.15em] text-[#7a7a7a]">
                 <div className="font-semibold">Size</div>
                 <div className="text-[#2c2c2c]">{product.size}</div>
 
@@ -347,7 +366,7 @@ export default function Product() {
                   <span>ReWear Curator</span>
                   <button
                     onClick={openMessageModal}
-                    className="text-[#2a3d32] border-b border-[#2a3d32] hover:opacity-75 transition-opacity text-[10px] uppercase tracking-[0.1em] font-bold flex items-center gap-1.5 pb-0.5"
+                    className="text-[#2a3d32] border-b border-[#2a3d32] hover:opacity-75 transition-opacity text-xs uppercase tracking-[0.1em] font-bold flex items-center gap-1.5 pb-0.5"
                   >
                     <MessageCircle className="w-3 h-3" />
                     Ask Question
@@ -366,7 +385,7 @@ export default function Product() {
 
             {/* Calendar */}
             <div className="border thin-border p-8 mb-8">
-              <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-6 flex justify-between items-center">
+              <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-6 flex justify-between items-center">
                 <span>Pick your dates</span>
                 <span className="text-xs font-serif italic text-[#2c2c2c]">
                   {dateRange.from && dateRange.to
@@ -405,7 +424,7 @@ export default function Product() {
 
             {/* Delivery address */}
             <div className="mb-8 border-b thin-border pb-10">
-              <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
+              <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-4">
                 Delivery Address
               </div>
               <textarea
@@ -417,7 +436,7 @@ export default function Product() {
             {/* Total / Reserve */}
             <div className="flex justify-between items-center mb-10">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-1">
+                <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-1">
                   Total
                 </div>
                 <div className="text-3xl font-serif text-[#2c2c2c] mb-1">
@@ -425,30 +444,58 @@ export default function Product() {
                 </div>
               </div>
               <button
-                className="bg-[#2a3d32] text-white px-10 py-4 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors rounded-[2px]"
+                onClick={() => {
+                  if (!product) return;
+                  addToCart({
+                    id: Date.now(),
+                    listingId: product.id,
+                    title: product.title,
+                    brand: product.brand,
+                    image: product.image,
+                    rentalPrice: product.rentalPrice,
+                    buyPrice: product.buyPrice,
+                    startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+                    endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : undefined,
+                    days: getDaysCount(),
+                    totalPrice: calculateTotal(),
+                    mode: "rent",
+                  });
+                  setAddedToBag(true);
+                  setTimeout(() => setAddedToBag(false), 3000);
+                }}
+                className={`flex-1 px-8 py-4 text-sm uppercase tracking-[0.2em] font-semibold transition-all rounded-[2px] ${
+                  addedToBag
+                    ? "bg-green-700 text-white"
+                    : "bg-[#2a3d32] text-white hover:bg-[#1f2d25]"
+                } disabled:opacity-50`}
                 disabled={!dateRange.from || !dateRange.to}
               >
-                Reserve
+                {addedToBag ? "Added to Bag" : "Reserve Now"}
               </button>
             </div>
+            {addedToBag && (
+              <p className="text-xs text-green-700 font-semibold uppercase tracking-[0.1em] mt-2 animate-pulse">
+                Successfully added to your bag.
+              </p>
+            )}
 
             {/* Badges */}
             <div className="grid grid-cols-3 gap-4">
               <div className="border thin-border p-4 flex items-center justify-center gap-2 text-[#7a7a7a]">
                 <Truck className="w-3.5 h-3.5" />
-                <span className="text-[10px] uppercase tracking-[0.1em] font-semibold">
+                <span className="text-xs uppercase tracking-[0.1em] font-semibold">
                   White-glove delivery
                 </span>
               </div>
               <div className="border thin-border p-4 flex items-center justify-center gap-2 text-[#7a7a7a]">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span className="text-[10px] uppercase tracking-[0.1em] font-semibold">
+                <span className="text-xs uppercase tracking-[0.1em] font-semibold">
                   Dry-cleaned
                 </span>
               </div>
               <div className="border thin-border p-4 flex items-center justify-center gap-2 text-[#7a7a7a]">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="text-[10px] uppercase tracking-[0.1em] font-semibold">
+                <span className="text-xs uppercase tracking-[0.1em] font-semibold">
                   Insured
                 </span>
               </div>
@@ -472,19 +519,19 @@ export default function Product() {
                       ).toFixed(1)
                     : "5.0"}
                 </div>
-                <div className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a]">
+                <div className="text-sm uppercase tracking-[0.2em] font-semibold text-[#7a7a7a]">
                   {reviews.length} {reviews.length === 1 ? "Review" : "Reviews"}
                 </div>
               </div>
 
               {user ? (
                 <div className="bg-white/50 p-6 border thin-border">
-                  <h3 className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#2c2c2c] mb-4">
+                  <h3 className="text-sm uppercase tracking-[0.2em] font-semibold text-[#2c2c2c] mb-4">
                     Leave a review
                   </h3>
                   <form onSubmit={handleSubmitReview}>
                     <div className="mb-4">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-2 block">
+                      <label className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-2 block">
                         Rating
                       </label>
                       <div className="flex gap-2">
@@ -501,7 +548,7 @@ export default function Product() {
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-2 block">
+                      <label className="text-xs uppercase tracking-[0.2em] font-semibold text-[#7a7a7a] mb-2 block">
                         Comment
                       </label>
                       <textarea
@@ -515,7 +562,7 @@ export default function Product() {
                     <button
                       type="submit"
                       disabled={reviewStatus === "submitting"}
-                      className="w-full bg-[#2a3d32] text-white py-3 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors disabled:opacity-50"
+                      className="w-full bg-[#2a3d32] text-white py-3 text-sm uppercase tracking-[0.2em] font-semibold hover:bg-[#1f2d25] transition-colors disabled:opacity-50"
                     >
                       {reviewStatus === "submitting"
                         ? "Submitting..."
